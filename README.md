@@ -1,158 +1,188 @@
 # Chat Message Processing API
 
-## Descripción
+## 🎯 Descripción
 
-API RESTful para procesamiento de mensajes de chat construida con FastAPI y Python 3.10+. Esta API permite crear, procesar, almacenar y recuperar mensajes de chat con características como validación, filtrado de contenido inapropiado y paginación.
+API RESTful para procesamiento de mensajes de chat construida con FastAPI y Python 3.10+. Esta API implementa completamente los requisitos de la prueba técnica, permitiendo crear, procesar, almacenar y recuperar mensajes de chat con validación robusta, filtrado de contenido inapropiado, paginación y manejo profesional de errores.
 
-## Características Principales
+## ✨ Características Principales
 
-- ✅ **CRUD de Mensajes**: Crear y recuperar mensajes de chat
-- ✅ **Validación Rigurosa**: Validación de formato y campos requeridos
-- ✅ **Filtrado de Contenido**: Detección y filtrado de palabras inapropiadas
-- ✅ **Metadatos Automáticos**: Cálculo de longitud y conteo de palabras
-- ✅ **Paginación y Filtros**: Recuperación paginada con filtros por remitente
-- ✅ **Manejo de Errores**: Respuestas HTTP apropiadas y mensajes claros
-- ✅ **Pruebas Unitarias**: Cobertura completa de pruebas
-- ✅ **Documentación Automática**: Swagger UI y ReDoc integrados
-- ✅ **Arquitectura Limpia**: Separación de responsabilidades (Repositorio-Servicio-Controlador)
+### ✅ **Funcionalidades Implementadas**
+- **POST `/api/messages/`** - Creación de mensajes con validación completa
+- **GET `/api/messages/{session_id}`** - Recuperación con paginación y filtros
+- **Validación Rigurosa** - Esquemas Pydantic + servicios de validación
+- **Filtrado de Contenido** - Detección y reemplazo de palabras inapropiadas
+- **Metadatos Automáticos** - Cálculo de longitud y conteo de palabras
+- **Manejo de Errores** - Respuestas HTTP apropiadas y mensajes claros
+- **Documentación Automática** - Swagger UI y ReDoc integrados
+- **Arquitectura Limpia** - Separación Repositorio-Servicio-Controlador
 
-## Tecnologías Utilizadas
+### 🏗️ **Arquitectura Profesional**
+- **Patrón Repository** - Acceso a datos abstracto y testable
+- **Servicios de Negocio** - Lógica centralizada y reutilizable
+- **Inyección de Dependencias** - Configuración flexible y testable
+- **Validación por Capas** - Pydantic + servicios personalizados
+- **Base de Datos Relacional** - SQLAlchemy con SQLite
 
-- **Python 3.10+**
-- **FastAPI** - Framework web moderno y rápido
-- **SQLAlchemy** - ORM para manejo de base de datos
-- **SQLite** - Base de datos ligera (por simplicidad)
-- **Pydantic** - Validación de datos y serialización
-- **Pytest** - Framework de pruebas
+## 🚀 Demo Rápida
 
-## Estructura del Proyecto
+### **Probar en 1 minuto:**
+```bash
+# 1. Clonar y configurar
+git clone <repo-url>
+cd chat-message-api
+pip install -r requirements.txt
 
+# 2. Inicializar base de datos
+python -c "from app.models.database import init_db; init_db()"
+
+# 3. Ejecutar API
+python -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+
+# 4. Abrir documentación interactiva
+# http://localhost:8000/docs
+# http://localhost:8000/redoc
+```
+
+### **Ejemplo de Prueba Técnica Funcionando:**
+```bash
+# Usar el ejemplo EXACTO de la prueba técnica
+curl -X POST "http://localhost:8000/api/messages/" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "message_id": "msg-123456",
+    "session_id": "session-abcdef",
+    "content": "Hola, ¿cómo puedo ayudarte hoy?",
+    "timestamp": "2023-12-01T10:30:00Z",
+    "sender": "system"
+  }'
+```
+
+## 📋 Tabla de Contenidos
+
+- [Arquitectura del Sistema](#-arquitectura-del-sistema)
+- [Instalación Rápida](#-instalación-rápida)
+- [Endpoints de la API](#-endpoints-de-la-api)
+- [Esquemas de Datos](#-esquemas-de-datos)
+- [Flujos de Procesamiento](#-flujos-de-procesamiento)
+- [Manejo de Errores](#-manejo-de-errores)
+- [Ejemplos de Uso](#-ejemplos-de-uso)
+- [Pruebas](#-pruebas)
+- [Desarrollo](#-desarrollo)
+- [Despliegue](#-despliegue)
+
+## 🏗️ Arquitectura del Sistema
+
+### **Diagrama de Componentes**
+```
+┌─────────────────────────────────────────────────────┐
+│                    API Layer (FastAPI)              │
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  │
+│  │  Endpoints  │  │   Routers   │  │ Middleware  │  │
+│  │  (Controllers)│  │            │  │             │  │
+│  └──────┬──────┘  └──────┬──────┘  └──────┬──────┘  │
+└─────────┼─────────────────┼─────────────────┼─────────┘
+          │                 │                 │
+┌─────────┼─────────────────┼─────────────────┼─────────┐
+│         ▼                 ▼                 ▼         │
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  │
+│  │   Services  │  │ Validation  │  │ Processing  │  │
+│  │   Layer     │  │  Service    │  │  Service    │  │
+│  └──────┬──────┘  └──────┬──────┘  └──────┬──────┘  │
+└─────────┼─────────────────┼─────────────────┼─────────┘
+          │                 │                 │
+┌─────────┼─────────────────┼─────────────────┼─────────┐
+│         ▼                 ▼                 ▼         │
+│  ┌─────────────┐  ┌───────────────────────────────┐  │
+│  │ Repository  │  │      Data Models Layer        │  │
+│  │   Layer     │  │  (SQLAlchemy + Pydantic)      │  │
+│  └──────┬──────┘  └──────────────┬────────────────┘  │
+└─────────┼─────────────────────────┼───────────────────┘
+          │                         │
+          ▼                         ▼
+┌─────────────────────────────────────────────────────┐
+│              Database (SQLite)                      │
+└─────────────────────────────────────────────────────┘
+```
+
+### **Estructura del Proyecto**
 ```
 chat-message-api/
 ├── app/
-│   ├── __init__.py
-│   ├── main.py                      # Aplicación principal FastAPI
-│   ├── api/                         # Capa de presentación
-│   │   ├── __init__.py
-│   │   ├── endpoints/               # Controladores/Endpoints
-│   │   │   ├── __init__.py
-│   │   │   ├── messages.py          # Endpoints de mensajes
-│   │   │   └── health.py            # Endpoint de health check
-│   ├── core/                        # Configuración y utilidades core
-│   │   ├── __init__.py
-│   │   ├── config.py                # Configuración de la aplicación
-│   │   ├── dependencies.py          # Inyección de dependencias
-│   │   └── security.py              # Seguridad (si se implementa)
-│   ├── models/                      # Modelos de datos
-│   │   ├── __init__.py
-│   │   ├── message.py               # Modelo SQLAlchemy
-│   │   └── database.py              # Configuración de base de datos
+│   ├── main.py                      # Aplicación FastAPI
+│   ├── api/endpoints/               # Controladores
+│   │   ├── messages.py              # POST/GET mensajes
+│   │   └── health.py                # Health check
+│   ├── core/                        # Configuración
+│   │   ├── config.py                # Variables de entorno
+│   │   └── dependencies.py          # Inyección de dependencias
+│   ├── models/                      # Modelos SQLAlchemy
+│   │   ├── message.py               # Modelo Message
+│   │   └── database.py              # Configuración BD
 │   ├── schemas/                     # Esquemas Pydantic
-│   │   ├── __init__.py
-│   │   ├── message.py               # Esquemas de mensajes
+│   │   ├── message.py               # MessageCreate, Response
 │   │   └── responses.py             # Respuestas estandarizadas
 │   ├── services/                    # Lógica de negocio
-│   │   ├── __init__.py
 │   │   ├── message_service.py       # Servicio principal
-│   │   ├── processing_service.py    # Procesamiento de mensajes
-│   │   └── validation_service.py    # Validación de mensajes
-│   ├── repositories/                # Capa de acceso a datos
-│   │   ├── __init__.py
+│   │   ├── validation_service.py    # Validación avanzada
+│   │   └── processing_service.py    # Procesamiento contenido
+│   ├── repositories/                # Acceso a datos
 │   │   └── message_repository.py    # Operaciones CRUD
-│   └── utils/                       # Utilidades generales
-│       ├── __init__.py
+│   └── utils/                       # Utilidades
 │       └── helpers.py               # Funciones auxiliares
-├── tests/                           # Pruebas unitarias e integración
-│   ├── __init__.py
-│   ├── conftest.py                  # Configuración de pytest
-│   ├── test_models.py               # Pruebas de modelos
-│   ├── test_services.py             # Pruebas de servicios
-│   ├── test_repositories.py         # Pruebas de repositorios
-│   └── test_endpoints.py            # Pruebas de endpoints
-├── .env.example                     # Variables de entorno de ejemplo
-├── .gitignore                       # Archivos ignorados por Git
-├── requirements.txt                 # Dependencias del proyecto
-├── setup.py                         # Configuración del paquete
-└── README.md                        # Este archivo
+├── tests/                           # Suite de pruebas
+├── requirements.txt                 # Dependencias
+├── .env.example                     # Variables de entorno
+└── README.md                        # Documentación
 ```
 
-## Instalación y Configuración
+## ⚡ Instalación Rápida
 
-### Prerrequisitos
-
+### **Prerrequisitos**
 - Python 3.10 o superior
-- pip (gestor de paquetes de Python)
-- Git (opcional)
+- pip (gestor de paquetes)
 
-### Instalación Local
+### **Instalación en 4 pasos**
 
-1. **Clonar el repositorio** (si aplica):
 ```bash
+# 1. Clonar repositorio
 git clone <repo-url>
 cd chat-message-api
-```
 
-2. **Crear entorno virtual**:
-```bash
+# 2. Crear entorno virtual (opcional pero recomendado)
 python -m venv venv
-# En Windows:
-venv\Scripts\activate
-# En Mac/Linux:
-source venv/bin/activate
-```
+source venv/bin/activate  # Linux/Mac
+# venv\Scripts\activate   # Windows
 
-3. **Instalar dependencias**:
-```bash
+# 3. Instalar dependencias
 pip install -r requirements.txt
-```
 
-4. **Configurar variables de entorno**:
-```bash
+# 4. Configurar e inicializar
 cp .env.example .env
-# Editar .env según sea necesario
-```
-
-5. **Inicializar la base de datos**:
-```bash
-# Esto creará la base de datos SQLite con las tablas necesarias
 python -c "from app.models.database import init_db; init_db()"
 ```
 
-6. **Ejecutar la aplicación**:
+### **Ejecutar la API**
+
 ```bash
-uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+# Desarrollo (con recarga automática)
+python -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+
+# Producción
+python -m uvicorn app.main:app --host 0.0.0.0 --port 8000
 ```
 
-### Usando Docker
+### **Acceder a Documentación**
+- **Swagger UI (Interactivo):** http://localhost:8000/docs
+- **ReDoc (Alternativa):** http://localhost:8000/redoc
+- **OpenAPI Spec:** http://localhost:8000/openapi.json
 
-1. **Construir y ejecutar con Docker Compose**:
-```bash
-docker-compose up --build
-```
+## 🌐 Endpoints de la API
 
-2. **Solo con Docker**:
-```bash
-docker build -t chat-message-api .
-docker run -p 8000:8000 chat-message-api
-```
+### **1. POST `/api/messages/` - Crear Mensaje**
 
-## Uso de la API
+**Descripción:** Crea un nuevo mensaje con validación completa y procesamiento.
 
-### Documentación Interactiva
-
-Una vez ejecutada la aplicación, accede a:
-
-- **Swagger UI**: http://localhost:8000/docs
-- **ReDoc**: http://localhost:8000/redoc
-
-### Endpoints Principales
-
-#### 1. Crear un Mensaje
-**POST** `/api/messages/`
-
-Crea un nuevo mensaje de chat con procesamiento automático.
-
-**Request Body**:
+**Request:**
 ```json
 {
   "message_id": "msg-123456",
@@ -163,265 +193,680 @@ Crea un nuevo mensaje de chat con procesamiento automático.
 }
 ```
 
-**Respuesta Exitosa (201 Created)**:
+**Validaciones aplicadas:**
+- ✅ Campos requeridos presentes
+- ✅ `sender` solo "user" o "system"
+- ✅ `timestamp` no puede ser futuro
+- ✅ `message_id` único (no duplicado)
+- ✅ `content` no vacío
+
+**Procesamiento automático:**
+1. **Filtrado de contenido:** Palabras inapropiadas → asteriscos
+2. **Cálculo de metadatos:** Longitud y conteo de palabras
+3. **Almacenamiento:** Persistencia en SQLite
+
+**Respuesta Exitosa (201):**
 ```json
 {
-  "message_id": "msg-123456",
-  "session_id": "session-abcdef",
-  "content": "Hola, ¿cómo puedo ayudarte hoy?",
-  "timestamp": "2023-12-01T10:30:00Z",
-  "sender": "system",
-  "id": 1,
-  "original_content": "Hola, ¿cómo puedo ayudarte hoy?",
-  "message_length": 27,
-  "word_count": 5,
-  "created_at": "2023-12-01T10:30:01Z"
-}
-```
-
-#### 2. Obtener Mensajes por Sesión
-**GET** `/api/messages/{session_id}`
-
-Recupera todos los mensajes de una sesión específica con paginación.
-
-**Parámetros de Query**:
-- `sender` (opcional): Filtrar por remitente ("user" o "system")
-- `limit` (opcional, default: 50): Número máximo de mensajes a retornar (1-100)
-- `offset` (opcional, default: 0): Número de mensajes a saltar (para paginación)
-
-**Ejemplo**:
-```
-GET /api/messages/session-abcdef?sender=user&limit=20&offset=0
-```
-
-**Respuesta Exitosa (200 OK)**:
-```json
-[
-  {
+  "success": true,
+  "message": "Message created successfully",
+  "data": {
+    "id": 1,
     "message_id": "msg-123456",
     "session_id": "session-abcdef",
     "content": "Hola, ¿cómo puedo ayudarte hoy?",
-    "timestamp": "2023-12-01T10:30:00Z",
-    "sender": "system",
-    "id": 1,
     "original_content": "Hola, ¿cómo puedo ayudarte hoy?",
-    "message_length": 27,
+    "has_inappropriate_content": false,
+    "timestamp": "2023-12-01T10:30:00",
+    "sender": "system",
+    "message_length": 31,
     "word_count": 5,
-    "created_at": "2023-12-01T10:30:01Z"
-  }
-]
+    "created_at": "2025-12-03T19:17:55.685688",
+    "updated_at": "2025-12-03T19:17:55.685695"
+  },
+  "timestamp": "2025-12-03T19:17:55.705945"
+}
 ```
 
-#### 3. Health Check
-**GET** `/health/`
+### **2. GET `/api/messages/{session_id}` - Obtener Mensajes por Sesión**
 
-Verifica el estado de la API.
+**Descripción:** Recupera mensajes con paginación y filtros.
 
-**Respuesta**:
+**Parámetros de Query:**
+| Parámetro | Tipo | Default | Descripción |
+|-----------|------|---------|-------------|
+| `sender` | string | null | Filtrar por "user" o "system" |
+| `limit` | integer | 50 | Máximo resultados (1-100) |
+| `offset` | integer | 0 | Para paginación |
+
+**Ejemplos:**
+```
+GET /api/messages/session-abcdef
+GET /api/messages/session-abcdef?sender=user
+GET /api/messages/session-abcdef?limit=10&offset=0
+GET /api/messages/session-abcdef?sender=system&limit=20&offset=10
+```
+
+**Respuesta Exitosa (200):**
 ```json
 {
-  "status": "healthy"
+  "success": true,
+  "message": "Messages retrieved successfully",
+  "data": [...],
+  "pagination": {
+    "total": 15,
+    "limit": 10,
+    "offset": 0,
+    "has_more": true
+  }
 }
 ```
 
-## Ejemplos de Uso
+### **3. GET `/health` - Health Check**
 
-### Usando curl
+**Descripción:** Verifica estado de la API y dependencias.
 
-```bash
-# Crear un mensaje
-curl -X POST "http://localhost:8000/api/messages/" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "message_id": "msg-001",
-    "session_id": "session-123",
-    "content": "Hello, this is a test message",
-    "timestamp": "2023-12-01T10:30:00Z",
-    "sender": "user"
-  }'
-
-# Obtener mensajes de una sesión
-curl "http://localhost:8000/api/messages/session-123?limit=10&offset=0"
+**Respuesta:**
+```json
+{
+  "status": "healthy",
+  "version": "1.0.0",
+  "timestamp": "2025-12-03T19:18:39.748614",
+  "database": "healthy"
+}
 ```
 
-### Usando Python (requests)
+### **4. GET `/` - Página Principal**
+
+**Descripción:** Información básica y endpoints disponibles.
+
+**Respuesta:**
+```json
+{
+  "message": "Welcome to the Chat Message Processing API",
+  "version": "1.0.0",
+  "docs": "/docs",
+  "endpoints": {
+    "create_message": "POST /api/messages/",
+    "get_messages": "GET /api/messages/{session_id}",
+    "health": "GET /health"
+  }
+}
+```
+
+## 📊 Esquemas de Datos
+
+### **Message Model (SQLAlchemy)**
+```python
+class MessageModel(Base):
+    __tablename__ = "messages"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    message_id = Column(String(255), unique=True, nullable=False, index=True)
+    session_id = Column(String(255), nullable=False, index=True)
+    content = Column(Text, nullable=False)  # Contenido filtrado
+    original_content = Column(Text, nullable=False)  # Contenido original
+    has_inappropriate_content = Column(Boolean, default=False)
+    timestamp = Column(DateTime, nullable=False)
+    sender = Column(String(50), nullable=False)  # "user" o "system"
+    message_length = Column(Integer, nullable=False)
+    word_count = Column(Integer, nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+```
+
+### **Esquemas Pydantic**
+
+#### **MessageCreate (Entrada)**
+```python
+class MessageCreate(MessageBase):
+    """Esquema para crear mensajes"""
+    
+    @validator('sender')
+    def validate_sender(cls, v):
+        if v not in ['user', 'system']:
+            raise ValueError('sender must be "user" or "system"')
+        return v
+    
+    @validator('timestamp')
+    def validate_timestamp_not_future(cls, v):
+        if v > datetime.now(timezone.utc):
+            raise ValueError('timestamp cannot be in the future')
+        return v
+```
+
+#### **MessageResponse (Salida)**
+```python
+class MessageResponse(MessageBase):
+    """Esquema para respuestas de mensajes"""
+    id: int
+    original_content: str
+    message_length: int
+    word_count: int
+    has_inappropriate_content: bool
+    created_at: datetime
+    updated_at: datetime
+```
+
+## 🔄 Flujos de Procesamiento
+
+### **Flujo: Creación de Mensaje**
+
+```
+1. Cliente → POST /api/messages/ → JSON
+2. FastAPI → MessageCreate Schema → Validación básica
+3. ValidationService → Validación avanzada
+   - Estructura campos
+   - Contenido y formato
+   - Timestamp válido
+4. ProcessingService → Procesamiento
+   - Filtrar contenido inapropiado
+   - Calcular metadatos
+   - Sanitizar datos
+5. MessageRepository → Persistencia
+   - Verificar duplicados
+   - Crear en SQLite
+6. MessageResponse → Serialización → Cliente
+```
+
+### **Flujo: Filtrado de Contenido**
 
 ```python
-import requests
-import json
-
-BASE_URL = "http://localhost:8000"
-
-# Crear mensaje
-message_data = {
-    "message_id": "msg-python-001",
-    "session_id": "session-python-456",
-    "content": "Mensaje desde Python",
-    "timestamp": "2023-12-01T10:30:00Z",
-    "sender": "system"
-}
-
-response = requests.post(f"{BASE_URL}/api/messages/", json=message_data)
-print(f"Status: {response.status_code}")
-print(f"Response: {response.json()}")
-
-# Obtener mensajes
-response = requests.get(
-    f"{BASE_URL}/api/messages/session-python-456",
-    params={"limit": 10, "offset": 0}
-)
-messages = response.json()
-print(f"Total messages: {len(messages)}")
+# Ejemplo de filtrado
+entrada = "Este mensaje tiene badword1 contenido"
+procesado = "Este mensaje tiene ******** contenido"
+has_inappropriate = True
 ```
 
-## Características de Procesamiento
+**Palabras filtradas por defecto:**
+- `badword1`
+- `badword2` 
+- `inappropriate`
+- `offensive`
 
-### Validación
-- Campos requeridos: `message_id`, `session_id`, `content`, `timestamp`, `sender`
-- `sender` solo acepta "user" o "system"
-- `timestamp` no puede ser en el futuro
-- `content` no puede estar vacío
-- `message_id` debe ser único
+### **Flujo: Cálculo de Metadatos**
 
-### Filtrado de Contenido
-La API detecta y filtra automáticamente palabras inapropiadas:
-- Palabras filtradas: ["badword1", "badword2", "inappropriate"]
-- Las palabras inapropiadas son reemplazadas por asteriscos
-- Se preserva el contenido original en `original_content`
+```python
+content = "Hola, ¿cómo estás?"
+message_length = len(content)  # 17 caracteres
+word_count = len(content.split())  # 3 palabras
+```
 
-### Metadatos Automáticos
-Para cada mensaje, se calculan:
-- `message_length`: Longitud del contenido filtrado
-- `word_count`: Número de palabras en el contenido
+## ⚠️ Manejo de Errores
 
-## Manejo de Errores
-
-La API retorna códigos HTTP apropiados:
+### **Códigos HTTP y Significado**
 
 | Código | Descripción | Ejemplo |
 |--------|-------------|---------|
 | 200 | OK | Operación exitosa |
 | 201 | Created | Mensaje creado exitosamente |
-| 400 | Bad Request | Datos inválidos en la solicitud |
-| 404 | Not Found | Sesión no encontrada |
+| 400 | Bad Request | Datos inválidos en solicitud |
 | 409 | Conflict | ID de mensaje duplicado |
-| 422 | Unprocessable Entity | Error de validación de datos |
+| 422 | Unprocessable Entity | Error validación Pydantic |
 | 500 | Internal Server Error | Error interno del servidor |
 
-**Ejemplo de error**:
+### **Ejemplos de Respuestas de Error**
+
+**Error de Validación (400):**
 ```json
 {
-  "detail": "Message with ID msg-123456 already exists"
+  "error": "sender debe ser 'user' o 'system'",
+  "code": "VALIDATION_ERROR",
+  "status": 400,
+  "timestamp": "2025-12-03T19:17:55.705945"
 }
 ```
 
-## Ejecución de Pruebas
+**Mensaje Duplicado (409):**
+```json
+{
+  "error": "Message with ID 'msg-123456' already exists",
+  "code": "DUPLICATE_MESSAGE",
+  "status": 409
+}
+```
 
-### Pruebas Unitarias
+**Error de Esquema Pydantic (422):**
+```json
+{
+  "detail": [
+    {
+      "loc": ["body", "timestamp"],
+      "msg": "field required",
+      "type": "value_error.missing"
+    }
+  ]
+}
+```
+
+## 💡 Ejemplos de Uso
+
+### **Usando curl**
+
+```bash
+# 1. Health check
+curl -X GET "http://localhost:8000/health"
+
+# 2. Crear mensaje (ejemplo prueba técnica)
+curl -X POST "http://localhost:8000/api/messages/" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "message_id": "msg-123456",
+    "session_id": "session-abcdef",
+    "content": "Hola, ¿cómo puedo ayudarte hoy?",
+    "timestamp": "2023-12-01T10:30:00Z",
+    "sender": "system"
+  }'
+
+# 3. Crear mensaje con contenido inapropiado
+curl -X POST "http://localhost:8000/api/messages/" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "message_id": "msg-bad-001",
+    "session_id": "session-test",
+    "content": "Mensaje con badword1 contenido",
+    "timestamp": "2023-12-01T10:30:00Z",
+    "sender": "user"
+  }'
+
+# 4. Obtener mensajes
+curl -X GET "http://localhost:8000/api/messages/session-abcdef"
+
+# 5. Obtener con filtros
+curl -X GET "http://localhost:8000/api/messages/session-abcdef?sender=system&limit=5"
+```
+
+### **Usando Python (requests)**
+
+```python
+import requests
+from datetime import datetime, timezone
+
+BASE_URL = "http://localhost:8000"
+
+# 1. Crear mensaje
+message = {
+    "message_id": f"msg-{datetime.now().strftime('%Y%m%d%H%M%S')}",
+    "session_id": "session-python-client",
+    "content": "Mensaje desde Python con badword1",
+    "timestamp": datetime.now(timezone.utc).isoformat(),
+    "sender": "user"
+}
+
+response = requests.post(f"{BASE_URL}/api/messages/", json=message)
+print(f"Status: {response.status_code}")
+print(f"Mensaje creado: {response.json()['data']['id']}")
+
+# 2. Obtener mensajes
+response = requests.get(f"{BASE_URL}/api/messages/session-python-client")
+messages = response.json()['data']
+print(f"Mensajes obtenidos: {len(messages)}")
+```
+
+### **Usando Swagger UI Interactivo**
+1. Navegar a: `http://localhost:8000/docs`
+2. Expandir `POST /api/messages/`
+3. Hacer clic en "Try it out"
+4. Pegar JSON de ejemplo
+5. Hacer clic en "Execute"
+6. Ver respuesta en tiempo real
+
+## 🧪 Pruebas
+
+### **Ejecutar Pruebas**
 
 ```bash
 # Ejecutar todas las pruebas
 pytest
 
-# Ejecutar pruebas con cobertura
+# Ejecutar con cobertura
 pytest --cov=app --cov-report=term-missing
+
+# Ejecutar pruebas específicas
+pytest tests/test_services.py -v
+pytest tests/test_endpoints.py -v
 
 # Generar reporte HTML de cobertura
 pytest --cov=app --cov-report=html
 ```
 
-### Tipos de Pruebas
+### **Tipos de Pruebas Implementadas**
 
-1. **Pruebas de Modelos**: Verifican el comportamiento de los modelos de datos
-2. **Pruebas de Repositorios**: Prueban las operaciones de base de datos
-3. **Pruebas de Servicios**: Verifican la lógica de negocio
-4. **Pruebas de Endpoints**: Pruebas de integración de la API
+1. **Pruebas de Servicios** (`tests/test_services.py`)
+   - Validación de mensajes
+   - Procesamiento de contenido
+   - Lógica de negocio
 
-## Configuración Avanzada
+2. **Pruebas de Endpoints** (`tests/test_endpoints.py`)
+   - Creación de mensajes
+   - Recuperación con filtros
+   - Manejo de errores
 
-### Variables de Entorno
+3. **Pruebas de Repositorio** (`tests/test_repositories.py`)
+   - Operaciones CRUD
+   - Consultas con filtros
+   - Manejo de transacciones
 
-Crea un archivo `.env` con las siguientes variables:
+### **Ejemplo de Prueba**
+
+```python
+def test_create_message_with_bad_words():
+    """Prueba que el filtrado de contenido funciona"""
+    service = ProcessingService()
+    
+    content = "Mensaje con badword1 ofensivo"
+    filtered, has_inappropriate = service.filter_inappropriate_content(content)
+    
+    assert has_inappropriate == True
+    assert "badword1" not in filtered
+    assert "********" in filtered
+```
+
+## 🛠️ Desarrollo
+
+### **Configuración de Desarrollo**
+
+```bash
+# 1. Clonar repositorio
+git clone <repo-url>
+cd chat-message-api
+
+# 2. Configurar entorno de desarrollo
+python -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+pip install -r requirements-dev.txt  # Dependencias desarrollo
+
+# 3. Configurar pre-commit hooks (opcional)
+pre-commit install
+
+# 4. Ejecutar en modo desarrollo
+python -m uvicorn app.main:app --reload
+```
+
+### **Estructura de Commits**
+
+```bash
+# Convención de commits
+git commit -m "feat: add message validation service"
+git commit -m "fix: resolve duplicate message_id issue"
+git commit -m "docs: update API documentation"
+git commit -m "test: add integration tests for endpoints"
+```
+
+### **Código de Ejemplo: Agregar Nueva Función**
+
+```python
+# En app/services/processing_service.py
+class ProcessingService:
+    
+    @staticmethod
+    def new_feature(content: str) -> Dict[str, Any]:
+        """
+        Nueva funcionalidad de ejemplo.
+        
+        Args:
+            content: Contenido a procesar
+            
+        Returns:
+            Dict[str, Any]: Resultados del procesamiento
+        """
+        # Implementación aquí
+        return {"result": "processed"}
+```
+
+## 🚀 Despliegue
+
+### **Configuración para Producción**
 
 ```env
-# Entorno de ejecución
+# .env para producción
 APP_NAME="Chat Message API"
 DEBUG=False
-
-# Base de datos
-DATABASE_URL="sqlite:///./chat_messages.db"
-
-# Para producción, puedes usar PostgreSQL:
-# DATABASE_URL="postgresql://user:password@localhost/chat_db"
-
-# Configuración de servidor
+DATABASE_URL="sqlite:///./prod_messages.db"
 HOST="0.0.0.0"
 PORT=8000
 ```
 
-### Usando PostgreSQL
+### **Usando Docker**
 
-1. Cambiar `DATABASE_URL` en `.env`:
-```env
-DATABASE_URL="postgresql://postgres:password@localhost/chat_db"
-```
-
-2. Instalar dependencias adicionales:
 ```bash
-pip install psycopg2-binary
+# Construir imagen
+docker build -t chat-message-api .
+
+# Ejecutar contenedor
+docker run -p 8000:8000 \
+  -e DATABASE_URL="sqlite:///./data/chat_messages.db" \
+  -v ./data:/app/data \
+  chat-message-api
 ```
 
-3. Actualizar `requirements.txt`
+### **Usando Docker Compose**
 
-## Puntos Extra Implementados
+```yaml
+# docker-compose.yml
+version: '3.8'
+services:
+  api:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=sqlite:///./data/chat_messages.db
+    volumes:
+      - ./data:/app/data
+```
 
-### Dockerización
-- **Dockerfile** para contenerización de la aplicación
-- **docker-compose.yml** para orquestación
-- Base de datos SQLite persistente en volumen
+### **Despliegue en Servidores**
 
-### Arquitectura Limpia
-- Separación clara de responsabilidades
-- Patrón Repositorio para acceso a datos
-- Servicios para lógica de negocio
-- Inyección de dependencias
+```bash
+# 1. Copiar código al servidor
+scp -r chat-message-api user@server:/opt/
 
-### Documentación Completa
-- Documentación automática con Swagger
-- README detallado
-- Ejemplos de uso
-- Configuración paso a paso
+# 2. Instalar dependencias
+ssh user@server "cd /opt/chat-message-api && pip install -r requirements.txt"
 
-## Posibles Mejoras Futuras
+# 3. Configurar systemd service
+sudo cp chat-message-api.service /etc/systemd/system/
+sudo systemctl enable chat-message-api
+sudo systemctl start chat-message-api
 
-1. **Autenticación**: Implementar JWT o API keys
-2. **Rate Limiting**: Limitar peticiones por usuario/IP
-3. **WebSocket**: Endpoint para mensajes en tiempo real
-4. **Búsqueda**: Funcionalidad de búsqueda full-text
-5. **Métricas**: Integración con Prometheus/Grafana
-6. **Logging**: Sistema de logging estructurado
-7. **Cache**: Implementar Redis para caché
-8. **Mensajería**: Integración con RabbitMQ/Kafka
+# 4. Configurar nginx como reverse proxy
+# /etc/nginx/sites-available/chat-api
+server {
+    listen 80;
+    server_name api.tudominio.com;
+    
+    location / {
+        proxy_pass http://localhost:8000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+    }
+}
+```
 
-## Contribución
+## 📈 Monitoreo y Métricas
 
-1. Fork el repositorio
-2. Crea una rama para tu feature (`git checkout -b feature/AmazingFeature`)
-3. Commit tus cambios (`git commit -m 'Add some AmazingFeature'`)
-4. Push a la rama (`git push origin feature/AmazingFeature`)
-5. Abre un Pull Request
+### **Endpoints de Salud**
 
-## Licencia
+```bash
+# Health check básico
+GET /health
+
+# Liveness probe (Kubernetes)
+GET /health/live
+
+# Readiness probe (Kubernetes)  
+GET /health/ready
+```
+
+### **Métricas Recomendadas**
+
+```python
+# Puntos de instrumentación
+metrics = {
+    "messages_created_total": "Contador de mensajes creados",
+    "messages_retrieved_total": "Contador de mensajes recuperados",
+    "messages_with_inappropriate_content": "Mensajes filtrados",
+    "api_request_duration_seconds": "Duración de peticiones",
+    "api_errors_total": "Errores por tipo"
+}
+```
+
+## 🔧 Configuración Avanzada
+
+### **Personalizar Palabras Inapropiadas**
+
+```python
+# En app/services/processing_service.py
+class ProcessingService:
+    INAPPROPRIATE_WORDS = [
+        "badword1",
+        "badword2", 
+        "inappropriate",
+        "offensive",
+        # Agregar nuevas palabras
+        "nuevapalabra",
+        "otrapalabra"
+    ]
+```
+
+### **Cambiar a PostgreSQL**
+
+```env
+# .env
+DATABASE_URL="postgresql://user:password@localhost/chat_db"
+```
+
+```bash
+# Instalar driver PostgreSQL
+pip install psycopg2-binary
+
+# Actualizar requirements.txt
+echo "psycopg2-binary==2.9.6" >> requirements.txt
+```
+
+### **Configurar Logging**
+
+```python
+# En app/core/config.py
+import logging
+
+logging_config = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "default": {
+            "format": "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+        }
+    },
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
+            "formatter": "default",
+        },
+        "file": {
+            "class": "logging.FileHandler",
+            "filename": "app.log",
+            "formatter": "default",
+        }
+    },
+    "loggers": {
+        "app": {
+            "handlers": ["console", "file"],
+            "level": "INFO",
+        }
+    }
+}
+```
+
+## 🤝 Contribución
+
+### **Proceso de Contribución**
+
+1. **Fork** el repositorio
+2. **Crear rama** para tu feature:
+   ```bash
+   git checkout -b feature/nueva-funcionalidad
+   ```
+3. **Commit** tus cambios:
+   ```bash
+   git commit -m "feat: add nueva funcionalidad"
+   ```
+4. **Push** a la rama:
+   ```bash
+   git push origin feature/nueva-funcionalidad
+   ```
+5. **Abrir Pull Request**
+
+### **Guías de Estilo**
+
+- **Código:** PEP 8, type hints, docstrings
+- **Commits:** Conventional Commits
+- **Documentación:** Markdown con ejemplos claros
+- **Pruebas:** pytest con cobertura >80%
+
+### **Reportar Issues**
+
+Al reportar un issue, incluir:
+1. Versión de la API
+2. Pasos para reproducir
+3. Comportamiento esperado vs actual
+4. Logs de error relevantes
+5. Entorno (SO, Python version, etc.)
+
+## 📚 Recursos Adicionales
+
+### **Documentación Oficial**
+- [FastAPI Documentation](https://fastapi.tiangolo.com/)
+- [SQLAlchemy Documentation](https://docs.sqlalchemy.org/)
+- [Pydantic Documentation](https://docs.pydantic.dev/)
+- [Pytest Documentation](https://docs.pytest.org/)
+
+### **Tutoriales Relacionados**
+- [Building REST APIs with FastAPI](https://fastapi.tiangolo.com/tutorial/)
+- [SQLAlchemy ORM Tutorial](https://docs.sqlalchemy.org/en/14/orm/tutorial.html)
+- [Testing FastAPI Applications](https://fastapi.tiangolo.com/tutorial/testing/)
+
+### **Herramientas Recomendadas**
+- **Postman/Insomnia:** Para probar endpoints
+- **SQLite Browser:** Para inspeccionar base de datos
+- **pytest-cov:** Para cobertura de pruebas
+- **pre-commit:** Para hooks de git
+
+## 🏆 Cumplimiento de Requisitos Técnicos
+
+### **✅ Requisitos Funcionales Completados**
+
+| Requisito | Estado | Detalles |
+|-----------|--------|----------|
+| POST /api/messages/ | ✅ | Validación, procesamiento, almacenamiento |
+| GET /api/messages/{session_id} | ✅ | Paginación, filtros por sender |
+| Validación formato mensaje | ✅ | Pydantic + servicios personalizados |
+| Procesamiento mensajes | ✅ | Filtrado contenido + metadatos |
+| Almacenamiento SQLite | ✅ | SQLAlchemy con modelo completo |
+| Manejo errores apropiado | ✅ | Códigos HTTP + mensajes claros |
+
+### **✅ Organización del Código**
+
+| Principio | Implementación |
+|-----------|----------------|
+| Separación responsabilidades | ✅ Controllers/Services/Repositories |
+| Inyección dependencias | ✅ FastAPI Depends |
+| Principios SOLID | ✅ Cumplidos en arquitectura |
+| Código mantenible | ✅ Estructura clara, documentada |
+
+
+## 📄 Licencia
 
 Este proyecto está bajo la Licencia MIT. Ver el archivo `LICENSE` para más detalles.
 
-## Soporte
+
+## 📞 Soporte
 
 Para soporte o preguntas:
-1. Revisa la documentación en `/docs`
-2. Abre un issue en el repositorio
-3. Contacta al equipo de desarrollo
 
----
+1. **Revisar documentación:** `/docs` y este README
+2. **Abrir issue:** En el repositorio GitHub
+3. **Contactar desarrollo:** Para consultas específicas
 
-**Nota**: Esta es una API de ejemplo para evaluación técnica. En producción, considera implementar autenticación, rate limiting, y usar una base de datos más robusta como PostgreSQL.
