@@ -73,8 +73,6 @@ chat-message-api/
 ├── .gitignore                       # Archivos ignorados por Git
 ├── requirements.txt                 # Dependencias del proyecto
 ├── setup.py                         # Configuración del paquete
-├── Dockerfile                       # Configuración Docker
-├── docker-compose.yml               # Orquestación Docker
 └── README.md                        # Este archivo
 ```
 
