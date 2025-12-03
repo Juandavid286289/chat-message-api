@@ -45,7 +45,7 @@ async def root():
         "version": "1.0.0",
         "docs": "/docs",
         "endpoints": {
-            "create_message": "POST /api/messages/",
+            "create_message": "POST /messages/",
             "get_messages": "GET /api/messages/{session_id}",
             "health": "GET /health",
             "liveness": "GET /health/live",

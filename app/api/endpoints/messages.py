@@ -11,7 +11,7 @@ from app.core.dependencies import get_db
 from app.schemas.message import MessageCreate, MessageFilter, MessageResponse
 from app.schemas.responses import StandardResponse, MessageListResponse, ErrorResponse
 
-router = APIRouter(prefix="/api/messages", tags=["messages"])
+router = APIRouter(prefix="/messages", tags=["messages"])
 
 
 @router.post(

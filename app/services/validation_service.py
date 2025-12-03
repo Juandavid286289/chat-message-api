@@ -170,9 +170,6 @@ class ValidationService:
         if timestamp > now:
             errors.append("La marca de tiempo no puede ser en el futuro")
         
-        # No puede ser demasiado antigua (ej: más de 1 año)
-        if timestamp < one_year_ago:
-            errors.append("La marca de tiempo no puede ser mayor a un año en el pasado")
         
         return len(errors) == 0, errors
     

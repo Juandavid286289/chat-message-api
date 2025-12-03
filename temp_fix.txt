@@ -1,0 +1,55 @@
+﻿    @staticmethod
+    def process_message(message_data: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Procesa completamente un mensaje.
+        
+        Args:
+            message_data: Datos del mensaje a procesar
+            
+        Returns:
+            Dict[str, Any]: Datos procesados con metadatos
+        """
+        # Copiar datos originales
+        processed_data = message_data.copy()
+        
+        # 1. Obtener contenido original
+        original_content = message_data.get('content', '')
+        
+        # 2. Filtrar contenido inapropiado
+        filtered_content, has_inappropriate, found_words = ProcessingService.filter_inappropriate_content(original_content)
+        
+        # 3. Calcular estadísticas del contenido filtrado
+        stats = ProcessingService.calculate_stats(filtered_content)
+        
+        # 4. Asegurar que original_content siempre tenga valor
+        if not original_content:
+            original_content = filtered_content
+        
+        # 5. Agregar metadatos al mensaje procesado
+        # NOTA: Solo incluir campos que existen en MessageModel
+        processed_data.update({
+            'content': filtered_content,
+            'original_content': original_content,
+            'has_inappropriate_content': has_inappropriate,
+            'inappropriate_words_found': found_words,
+            'message_length': stats['message_length'],
+            'word_count': stats['word_count'],
+            # 'line_count' no se incluye porque no existe en MessageModel
+        })
+        
+        # 6. Asegurar que todos los campos requeridos existen
+        required_fields = [
+            'content', 'original_content', 'message_length', 'word_count',
+            'has_inappropriate_content'
+        ]
+        
+        for field in required_fields:
+            if field not in processed_data:
+                if field == 'has_inappropriate_content':
+                    processed_data[field] = False
+                elif field in ['message_length', 'word_count']:
+                    processed_data[field] = 0
+                else:
+                    processed_data[field] = ''
+        
+        return processed_data
