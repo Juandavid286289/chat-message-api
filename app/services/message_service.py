@@ -23,6 +23,63 @@ class MessageService:
     def __init__(self, repository: MessageRepository):
         self.repository = repository
     
+    async def create_message(self, message_data: Dict[str, Any]) -> Tuple[bool, str, Optional[MessageModel]]:
+        """
+        Crea un nuevo mensaje con validación y procesamiento completo.
+        
+        Args:
+            message_data: Datos del mensaje a crear
+            
+        Returns:
+            Tuple[bool, str, Optional[MessageModel]]: 
+                (éxito, mensaje, mensaje_creado)
+        """
+        try:
+            # 1. Validar datos con esquema Pydantic
+            try:
+                message_create = MessageCreate(**message_data)
+            except Exception as e:
+                return False, f"Error de validación de esquema: {str(e)}", None
+            
+            # 2. Validar datos con servicio de validación
+            is_valid, errors, validated_data = ValidationService.validate_complete_message(
+                message_data
+            )
+            
+            if not is_valid:
+                error_msg = ", ".join(errors) if errors else "Datos inválidos"
+                return False, error_msg, None
+            
+            # 3. Verificar que el message_id no exista
+            existing_message = self.repository.get_by_message_id(
+                validated_data["message_id"]
+            )
+            
+            if existing_message:
+                return False, f"Mensaje con identificación '{validated_data['message_id']}' ya existe", None
+            
+            # 4. Procesar el mensaje
+            processed_data = ProcessingService.process_message(validated_data)
+            
+            # 5. Sanitizar datos
+            sanitized_data = ProcessingService.sanitize_message_data(processed_data)
+            
+            # 6. Asegurar campos requeridos
+            if "created_at" not in sanitized_data:
+                sanitized_data["created_at"] = datetime.utcnow()
+            if "updated_at" not in sanitized_data:
+                sanitized_data["updated_at"] = datetime.utcnow()
+            
+            # 7. Crear en base de datos
+            db_message = self.repository.create(sanitized_data)
+            
+            return True, "Mensaje creado exitosamente", db_message
+            
+        except Exception as e:
+            # Manejo de errores inesperados
+            error_msg = f"Error interno al crear mensaje: {str(e)}"
+            return False, error_msg, None
+    
     async def get_messages_by_session(
         self, 
         session_id: str,

@@ -11,7 +11,7 @@ class ProcessingService:
     """
     
     # Lista de palabras inapropiadas
-    INAPPROPRIATE_WORDS = ["badword1", "badword2", "inappropriate", "offensive"]
+    INAPPROPRIATE_WORDS = ["badword1", "badword2", "inappropriate", "offensive", "badword3"]
     
     @staticmethod
     def filter_inappropriate_content(content: str) -> Tuple[str, bool]:
