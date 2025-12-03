@@ -23,68 +23,11 @@ class MessageService:
     def __init__(self, repository: MessageRepository):
         self.repository = repository
     
-    async def create_message(self, message_data: Dict[str, Any]) -> Tuple[bool, str, Optional[MessageModel]]:
-        """
-        Crea un nuevo mensaje con validación y procesamiento completo.
-        
-        Args:
-            message_data: Datos del mensaje a crear
-            
-        Returns:
-            Tuple[bool, str, Optional[MessageModel]]: 
-                (éxito, mensaje, mensaje_creado)
-        """
-        try:
-            # 1. Validar datos con esquema Pydantic
-            try:
-                message_create = MessageCreate(**message_data)
-            except Exception as e:
-                return False, f"Error de validación de esquema: {str(e)}", None
-            
-            # 2. Validar datos con servicio de validación
-            is_valid, errors, validated_data = ValidationService.validate_complete_message(
-                message_data
-            )
-            
-            if not is_valid:
-                error_msg = ", ".join(errors) if errors else "Datos inválidos"
-                return False, error_msg, None
-            
-            # 3. Verificar que el message_id no exista
-            existing_message = self.repository.get_by_message_id(
-                validated_data["message_id"]
-            )
-            
-            if existing_message:
-                return False, f"Message with ID '{validated_data['message_id']}' already exists", None
-            
-            # 4. Procesar el mensaje
-            processed_data = ProcessingService.process_message(validated_data)
-            
-            # 5. Sanitizar datos
-            sanitized_data = ProcessingService.sanitize_message_data(processed_data)
-            
-            # 6. Asegurar campos requeridos
-            if "created_at" not in sanitized_data:
-                sanitized_data["created_at"] = datetime.utcnow()
-            if "updated_at" not in sanitized_data:
-                sanitized_data["updated_at"] = datetime.utcnow()
-            
-            # 7. Crear en base de datos
-            db_message = self.repository.create(sanitized_data)
-            
-            return True, "Message created successfully", db_message
-            
-        except Exception as e:
-            # Manejo de errores inesperados
-            error_msg = f"Error interno al crear mensaje: {str(e)}"
-            return False, error_msg, None
-    
     async def get_messages_by_session(
         self, 
         session_id: str,
         filter_params: Optional[MessageFilter] = None
-    ) -> Tuple[bool, str, Optional[list]]:
+    ) -> Tuple[bool, str, Optional[dict]]:
         """
         Obtiene mensajes de una sesión con filtros.
         
@@ -93,8 +36,8 @@ class MessageService:
             filter_params: Parámetros de filtrado opcionales
             
         Returns:
-            Tuple[bool, str, Optional[list]]: 
-                (éxito, mensaje, lista_mensajes)
+            Tuple[bool, str, Optional[dict]]: 
+                (éxito, mensaje, resultado)
         """
         try:
             # 1. Validar session_id
@@ -104,14 +47,22 @@ class MessageService:
             # 2. Obtener mensajes del repositorio
             messages = self.repository.get_by_session_id(session_id, filter_params)
             
-            # 3. Verificar si hay mensajes
-            if not messages:
-                return True, f"No messages found for session '{session_id}'", []
-            
-            # 4. Contar total para paginación
+            # 3. Contar total para paginación
             total_count = self.repository.count_by_session(session_id)
             
-            # 5. Preparar respuesta
+            # 4. Verificar si hay mensajes
+            if not messages:
+                # No es un error, solo retornamos vacío
+                result = {
+                    "messages": [],
+                    "total": 0,
+                    "limit": filter_params.limit if filter_params else 50,
+                    "offset": filter_params.offset if filter_params else 0,
+                    "has_more": False
+                }
+                return True, f"No se encontraron mensajes para la sesión '{session_id}'", result
+            
+            # 5. Preparar respuesta completa
             result = {
                 "messages": messages,
                 "total": total_count,
@@ -123,11 +74,12 @@ class MessageService:
                 )
             }
             
-            return True, "Messages retrieved successfully", result
+            return True, "Mensajes recuperados exitosamente", result
             
         except Exception as e:
             error_msg = f"Error al obtener mensajes: {str(e)}"
             return False, error_msg, None
+    
     
     async def get_message_by_id(self, message_id: int) -> Tuple[bool, str, Optional[MessageModel]]:
         """
@@ -142,14 +94,14 @@ class MessageService:
         """
         try:
             if not message_id or message_id <= 0:
-                return False, "Invalid message ID", None
+                return False, "ID de mensaje no válido", None
             
             message = self.repository.get_by_id(message_id)
             
             if not message:
-                return False, f"Message with ID {message_id} not found", None
+                return False, f"Mensaje con ID {message_id} no encontrado", None
             
-            return True, "Message found", message
+            return True, "Mensaje encontrado", message
             
         except Exception as e:
             error_msg = f"Error al obtener mensaje: {str(e)}"
@@ -167,14 +119,14 @@ class MessageService:
         """
         try:
             if not message_id or message_id <= 0:
-                return False, "Invalid message ID"
+                return False, "ID de mensaje no válido"
             
             deleted = self.repository.delete(message_id)
             
             if not deleted:
-                return False, f"Message with ID {message_id} not found"
+                return False, f"Mensaje con ID {message_id} no encontrado"
             
-            return True, "Message deleted successfully"
+            return True, "Mensaje eliminado exitosamente"
             
         except Exception as e:
             error_msg = f"Error al eliminar mensaje: {str(e)}"
@@ -201,7 +153,7 @@ class MessageService:
         try:
             # Validar query
             if not query or not query.strip():
-                return False, "Search query cannot be empty", None
+                return False, "La consulta de búsqueda no puede estar vacía", None
             
             # En una implementación real, aquí iría la lógica de búsqueda
             # Por simplicidad, obtendremos todos y filtraremos localmente
@@ -227,8 +179,9 @@ class MessageService:
                 "has_more": len(results) > (offset + limit)
             }
             
-            return True, "Search completed", result
+            return True, "Búsqueda completada exitosamente", result
             
         except Exception as e:
             error_msg = f"Error en búsqueda: {str(e)}"
             return False, error_msg, None
+

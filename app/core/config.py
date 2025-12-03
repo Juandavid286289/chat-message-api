@@ -29,7 +29,7 @@ class Settings:
                 import json
                 self.INAPPROPRIATE_WORDS = json.loads(words_str)
             except:
-                self.INAPPROPRIATE_WORDS = ["badword1", "badword2", "inappropriate"]
+                self.INAPPROPRIATE_WORDS = ["badword1", "badword2", "inappropriate", "offensive"]
         else:
             # Separar por comas
             self.INAPPROPRIATE_WORDS = [w.strip() for w in words_str.split(",") if w.strip()]
